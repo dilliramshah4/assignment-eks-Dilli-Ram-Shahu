@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notes-app-backend
+  namespace: prod
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: notes-app-backend
+  template:
+    metadata:
+      labels:
+        app: notes-app-backend
+    spec:
+      containers:
+      - name: backend
+        image: 815539056505.dkr.ecr.ap-south-1.amazonaws.com/devops-app:backend
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "notesdb.ctwqymigcmb0.ap-south-1.rds.amazonaws.com"
+        - name: DB_USER
+          value: "postgres"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+        - name: DB_NAME
+          value: "notesdb"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5

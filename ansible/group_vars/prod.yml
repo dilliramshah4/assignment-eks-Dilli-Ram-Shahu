@@ -1,0 +1,11 @@
+namespace: prod
+app_name: notes-app
+replicas: 2
+
+# Load from environment variables
+ecr_uri: "{{ lookup('env', 'ECR_URI') }}"
+frontend_tag: frontend-working-final
+db_host: "{{ lookup('env', 'DB_HOST') }}"
+db_user: "{{ lookup('env', 'DB_USER') }}"
+db_name: "{{ lookup('env', 'DB_NAME') }}"
+backend_url: "{{ lookup('env', 'BACKEND_URL') }}"

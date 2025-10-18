@@ -1,0 +1,37 @@
+---
+- name: Deploy Applications to Kubernetes
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../vault/secrets.yml
+  tasks:
+    - name: Create namespace
+      k8s:
+        definition:
+          apiVersion: v1
+          kind: Namespace
+          metadata:
+            name: "{{ namespace }}"
+            labels:
+              name: "{{ namespace }}"
+        state: present
+
+    - name: Render and apply secret
+      k8s:
+        definition: "{{ lookup('template', '../k8s-templates/secret.yaml.j2') | from_yaml }}"
+        state: present
+
+    - name: Render and apply backend deployment
+      k8s:
+        definition: "{{ lookup('template', '../k8s-templates/backend-deployment.yaml.j2') | from_yaml }}"
+        state: present
+
+    - name: Render and apply frontend deployment
+      k8s:
+        definition: "{{ lookup('template', '../k8s-templates/frontend-deployment.yaml.j2') | from_yaml }}"
+        state: present
+
+    - name: Render and apply services
+      k8s:
+        definition: "{{ lookup('template', '../k8s-templates/service.yaml.j2') | from_yaml_all | list }}"
+        state: present

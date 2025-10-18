@@ -1,0 +1,62 @@
+---
+- name: Deploy Applications using kubectl
+  hosts: localhost
+  gather_facts: false
+  vars_files:
+    - ../group_vars/secrets.yml
+  environment:
+    AWS_ACCESS_KEY_ID: "{{ lookup('env', 'AWS_ACCESS_KEY_ID') }}"
+    AWS_SECRET_ACCESS_KEY: "{{ lookup('env', 'AWS_SECRET_ACCESS_KEY') }}"
+  tasks:
+    - name: Create rendered manifests directory
+      file:
+        path: ../rendered
+        state: directory
+
+    - name: Render namespace manifest
+      template:
+        src: ../../k8s-templates/namespace.yaml.j2
+        dest: ../rendered/{{ namespace }}-namespace.yaml
+
+    - name: Render secret manifest
+      template:
+        src: ../../k8s-templates/secret.yaml.j2
+        dest: ../rendered/{{ namespace }}-secret.yaml
+
+    - name: Render backend deployment
+      template:
+        src: ../../k8s-templates/backend-deployment.yaml.j2
+        dest: ../rendered/{{ namespace }}-backend.yaml
+
+    - name: Render frontend deployment
+      template:
+        src: ../../k8s-templates/frontend-deployment.yaml.j2
+        dest: ../rendered/{{ namespace }}-frontend.yaml
+
+    - name: Render services
+      template:
+        src: ../../k8s-templates/service.yaml.j2
+        dest: ../rendered/{{ namespace }}-services.yaml
+
+    - name: Render LoadBalancer services
+      template:
+        src: ../../k8s-templates/loadbalancer-service.yaml.j2
+        dest: ../rendered/{{ namespace }}-loadbalancer.yaml
+
+    - name: Apply namespace
+      shell: kubectl apply -f ../rendered/{{ namespace }}-namespace.yaml
+
+    - name: Apply secret
+      shell: kubectl apply -f ../rendered/{{ namespace }}-secret.yaml
+
+    - name: Apply backend deployment
+      shell: kubectl apply -f ../rendered/{{ namespace }}-backend.yaml
+
+    - name: Apply frontend deployment
+      shell: kubectl apply -f ../rendered/{{ namespace }}-frontend.yaml
+
+    - name: Apply services
+      shell: kubectl apply -f ../rendered/{{ namespace }}-services.yaml
+
+    - name: Apply LoadBalancer services
+      shell: kubectl apply -f ../rendered/{{ namespace }}-loadbalancer.yaml

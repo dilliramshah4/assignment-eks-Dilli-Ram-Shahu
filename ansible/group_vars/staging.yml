@@ -1,0 +1,7 @@
+namespace: staging
+app_name: notes-app
+replicas: 1
+ecr_uri: 815539056505.dkr.ecr.ap-south-1.amazonaws.com/devops-app
+db_host: notesdb.ctwqymigcmb0.ap-south-1.rds.amazonaws.com
+db_user: postgres
+db_name: notesdb
