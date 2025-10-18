@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}-frontend
+  namespace: {{ namespace }}
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: {{ app_name }}-frontend
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}-frontend
+    spec:
+      containers:
+      - name: frontend
+        image: {{ ecr_uri }}:{{ frontend_tag | default('frontend') }}
+        ports:
+        - containerPort: 80
+        env:
+        - name: REACT_APP_API_URL
+          value: "{{ backend_url }}"
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"

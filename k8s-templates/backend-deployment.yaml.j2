@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ app_name }}-backend
+  namespace: {{ namespace }}
+spec:
+  replicas: {{ replicas }}
+  selector:
+    matchLabels:
+      app: {{ app_name }}-backend
+  template:
+    metadata:
+      labels:
+        app: {{ app_name }}-backend
+    spec:
+      containers:
+      - name: backend
+        image: {{ ecr_uri }}:backend
+        ports:
+        - containerPort: 3000
+        env:
+        - name: DB_HOST
+          value: "{{ db_host }}"
+        - name: DB_USER
+          value: "{{ db_user }}"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: db-secret
+              key: password
+        - name: DB_NAME
+          value: "{{ db_name }}"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3000
+          initialDelaySeconds: 5
