@@ -55,6 +55,8 @@ Automated CI/CD pipeline using GitHub Actions for building and deploying contain
 ### Frontend Configuration
 - REACT_APP_API_URL: Backend API URL for frontend application
 
+![ ](images/secrete.png)
+
 ## Image Tagging Strategy
 - Backend images: ECR_REPOSITORY:backend-COMMIT_SHA
 - Frontend images: ECR_REPOSITORY:frontend-COMMIT_SHA
@@ -71,6 +73,8 @@ Automated CI/CD pipeline using GitHub Actions for building and deploying contain
 - Dynamic manifest generation
 - Deployment verification and status reporting
 - Support for manual pipeline execution
+
+![ ](images/action.png)
 
 ## Monitoring and Verification
 - Deployment rollout status monitoring
