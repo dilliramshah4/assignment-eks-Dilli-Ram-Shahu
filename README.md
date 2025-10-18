@@ -2,10 +2,10 @@
 
 ## Architecture Overview
 
-```
+
 <img width="5370" height="4170" alt="architecture-diagram" src="https://github.com/user-attachments/assets/0f93481d-27cd-4928-8007-8e123f318760" />
 
-```
+
 
 ### ** URLs Delivered:**
 - **Frontend**: http://aa2e61962f18d40c28993d4429e51aa0-1396550290.ap-south-1.elb.amazonaws.com
