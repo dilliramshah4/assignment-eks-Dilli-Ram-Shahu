@@ -1,0 +1,190 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'backend/**'
+      - 'frontend/**'
+  pull_request:
+    branches: [ main ]
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: devops-app
+  EKS_CLUSTER_NAME: devops-cluster
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: ${{ env.AWS_REGION }}
+
+    - name: Login to Amazon ECR
+      id: login-ecr
+      uses: aws-actions/amazon-ecr-login@v1
+
+    - name: Build Backend Docker image
+      if: contains(github.event.head_commit.modified, 'backend/') || github.event_name == 'pull_request'
+      run: |
+        cd backend
+        # Create production Dockerfile that uses environment variables
+        cat > Dockerfile.prod << 'EOF'
+        FROM node:18-alpine
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci --only=production
+        COPY . .
+        EXPOSE 3000
+        CMD ["npm", "start"]
+        EOF
+        
+        docker build -f Dockerfile.prod -t $ECR_REGISTRY/$ECR_REPOSITORY:backend-$GITHUB_SHA .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:backend-$GITHUB_SHA
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+    - name: Build Frontend Docker image
+      if: contains(github.event.head_commit.modified, 'frontend/') || github.event_name == 'pull_request'
+      run: |
+        cd frontend
+        # Create production Dockerfile with build args
+        cat > Dockerfile.prod << 'EOF'
+        FROM node:18-alpine as build
+        WORKDIR /app
+        COPY package*.json ./
+        RUN npm ci
+        COPY . .
+        ARG REACT_APP_API_URL
+        ENV REACT_APP_API_URL=$REACT_APP_API_URL
+        RUN npm run build
+        
+        FROM nginx:alpine
+        COPY --from=build /app/build /usr/share/nginx/html
+        COPY nginx.conf /etc/nginx/nginx.conf
+        EXPOSE 80
+        CMD ["nginx", "-g", "daemon off;"]
+        EOF
+        
+        docker build -f Dockerfile.prod \
+          --build-arg REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} \
+          -t $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$GITHUB_SHA .
+        docker push $ECR_REGISTRY/$ECR_REPOSITORY:frontend-$GITHUB_SHA
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+    - name: Update kubeconfig
+      run: |
+        aws eks update-kubeconfig --region $AWS_REGION --name $EKS_CLUSTER_NAME
+
+    - name: Deploy Backend to EKS
+      if: contains(github.event.head_commit.modified, 'backend/') || github.event_name == 'pull_request'
+      run: |
+        # Create deployment with environment variables from secrets
+        cat > backend-deployment-ci.yaml << 'EOF'
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: notes-app-backend
+          namespace: prod
+        spec:
+          replicas: 2
+          selector:
+            matchLabels:
+              app: notes-app-backend
+          template:
+            metadata:
+              labels:
+                app: notes-app-backend
+              annotations:
+                prometheus.io/scrape: "true"
+                prometheus.io/port: "3000"
+                prometheus.io/path: "/metrics"
+            spec:
+              containers:
+              - name: backend
+                image: ECR_REGISTRY/ECR_REPOSITORY:backend-GITHUB_SHA
+                ports:
+                - containerPort: 3000
+                env:
+                - name: DB_HOST
+                  value: "DB_HOST_VALUE"
+                - name: DB_USER
+                  value: "DB_USER_VALUE"
+                - name: DB_PASSWORD
+                  value: "DB_PASSWORD_VALUE"
+                - name: DB_NAME
+                  value: "DB_NAME_VALUE"
+                - name: PORT
+                  value: "3000"
+        EOF
+        
+        # Replace placeholders with actual values
+        sed -i "s|ECR_REGISTRY|$ECR_REGISTRY|g" backend-deployment-ci.yaml
+        sed -i "s|ECR_REPOSITORY|$ECR_REPOSITORY|g" backend-deployment-ci.yaml
+        sed -i "s|GITHUB_SHA|$GITHUB_SHA|g" backend-deployment-ci.yaml
+        sed -i "s|DB_HOST_VALUE|${{ secrets.DB_HOST }}|g" backend-deployment-ci.yaml
+        sed -i "s|DB_USER_VALUE|${{ secrets.DB_USER }}|g" backend-deployment-ci.yaml
+        sed -i "s|DB_PASSWORD_VALUE|${{ secrets.DB_PASSWORD }}|g" backend-deployment-ci.yaml
+        sed -i "s|DB_NAME_VALUE|${{ secrets.DB_NAME }}|g" backend-deployment-ci.yaml
+        
+        kubectl apply -f backend-deployment-ci.yaml
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+    - name: Deploy Frontend to EKS
+      if: contains(github.event.head_commit.modified, 'frontend/') || github.event_name == 'pull_request'
+      run: |
+        # Create frontend deployment
+        cat > frontend-deployment-ci.yaml << 'EOF'
+        apiVersion: apps/v1
+        kind: Deployment
+        metadata:
+          name: notes-app-frontend
+          namespace: prod
+        spec:
+          replicas: 2
+          selector:
+            matchLabels:
+              app: notes-app-frontend
+          template:
+            metadata:
+              labels:
+                app: notes-app-frontend
+            spec:
+              containers:
+              - name: frontend
+                image: ECR_REGISTRY/ECR_REPOSITORY:frontend-GITHUB_SHA
+                ports:
+                - containerPort: 80
+        EOF
+        
+        # Replace placeholders
+        sed -i "s|ECR_REGISTRY|$ECR_REGISTRY|g" frontend-deployment-ci.yaml
+        sed -i "s|ECR_REPOSITORY|$ECR_REPOSITORY|g" frontend-deployment-ci.yaml
+        sed -i "s|GITHUB_SHA|$GITHUB_SHA|g" frontend-deployment-ci.yaml
+        
+        kubectl apply -f frontend-deployment-ci.yaml
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+
+    - name: Verify Deployment
+      run: |
+        echo "Waiting for deployments to complete..."
+        kubectl rollout status deployment/notes-app-backend -n prod --timeout=300s || true
+        kubectl rollout status deployment/notes-app-frontend -n prod --timeout=300s || true
+        
+        echo "Current pod status:"
+        kubectl get pods -n prod
+        
+        echo "Service endpoints:"
+        kubectl get svc -n prod
