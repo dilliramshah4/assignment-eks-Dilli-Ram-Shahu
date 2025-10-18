@@ -43,7 +43,7 @@ jobs:
       if: contains(github.event.head_commit.modified, 'frontend/') || github.event_name == 'pull_request' || github.event_name == 'workflow_dispatch'
       run: |
         cd frontend
-        docker build -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-$GITHUB_SHA .
+        docker build --build-arg REACT_APP_API_URL=${{ secrets.REACT_APP_API_URL }} -t $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-$GITHUB_SHA .
         docker push $ECR_REGISTRY/${{ secrets.ECR_REPOSITORY }}:frontend-$GITHUB_SHA
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
