@@ -24,7 +24,7 @@ kubectl get svc -n devops
 ## 📊 **Access URLs**
 
 ### **Grafana Dashboard:**
-- **URL**: `kubectl get svc grafana -n devops` (LoadBalancer URL)
+- **URL**: http://a473d6a5a9b464db18e2bf29ad6bd1c6-96360773.ap-south-1.elb.amazonaws.com:3000
 - **Credentials**: Default Grafana setup (change in production)
 
 ### **Prometheus Metrics:**
@@ -92,13 +92,6 @@ process_resident_memory_bytes{kubernetes_namespace="prod"}
 rate(http_requests_total{kubernetes_namespace="prod"}[5m])
 ```
 
-## 📸 **Screenshots**
-
-Dashboard screenshots available in `images/` folder:
-- `dashboard.png` - Dashboard overview
-- `infra-dash.png` - Infrastructure monitoring
-- `app-dash.png` - Application monitoring  
-- `alert.png` - Alert configuration
 
 ## ⚠️ **Security Notes**
 
