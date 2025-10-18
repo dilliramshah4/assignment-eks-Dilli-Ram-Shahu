@@ -48,3 +48,15 @@ Thumbs.db
 
 # Log files
 *.log
+
+# Environment files
+.env
+.env.*
+ansible/.env
+ansible/.env.*
+
+# Secrets and credentials
+secrets/
+*.secret
+vault_pass.txt
+ansible/vault/.vault_pass
