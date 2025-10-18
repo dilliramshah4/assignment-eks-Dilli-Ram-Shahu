@@ -22,7 +22,7 @@ The project uses S3 backend for remote state management:
 - **DynamoDB Table**: `${var.dynamodb_table_name}`
 - **Region**: `${var.aws_region}`
 
-![S3 Backend](images/s3-backend.png)
+![S3 Backend](images/backend-tf.png)
 
 ## Deployment Steps
 
@@ -33,7 +33,7 @@ cd terraform
 terraform init
 ```
 
-![Terraform Init](images/terraform-init.png)
+![Terraform Init](images/init-tf.png)
 
 ### 2. Plan Infrastructure
 
@@ -41,7 +41,7 @@ terraform init
 terraform plan
 ```
 
-![Terraform Plan](images/terraform-plan.png)
+![Terraform Plan](images/plan-tf.png)
 
 ### 3. Apply Configuration
 
@@ -49,7 +49,7 @@ terraform plan
 terraform apply
 ```
 
-![Terraform Apply](images/terraform-apply.png)
+![Terraform Apply](images/apply-tf.png)
 
 ## Configuration Files
 
