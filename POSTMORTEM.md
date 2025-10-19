@@ -1,6 +1,6 @@
 # DevOps Assignment - Postmortem
 
-## 🔍 **Project Overview**
+##  **Project Overview**
 Complete DevOps pipeline implementation with EKS, containerized applications, and observability stack.
 
 ### ** URLs Delivered:**
@@ -293,7 +293,7 @@ Database not accepting connections
 
 ---
 
-## 🎯 **Final Architecture Achieved**
+##  **Final Architecture Achieved**
 
 ### ** Successfully Deployed:**
 - **EKS Cluster**: 2-node cluster in ap-south-1
@@ -304,7 +304,6 @@ Database not accepting connections
 - **Load Balancers**: Public access to all services
 
 ### ** Key Metrics:**
-- **Deployment Time**: ~4 hours (including troubleshooting)
 - **Services Running**: 6 (backend, frontend, database, prometheus, grafana)
 - **Uptime**: 99.9% after initial deployment
 
