@@ -9,8 +9,8 @@
 
 ### ** URLs Delivered:**
 - **Frontend**: http://a1c9f27ed98674b16b528cc16808adb1-1883146032.ap-south-1.elb.amazonaws.com
-- **Backend**:  http://a05b35513704e4d6781313235705b65e-1355185947.ap-south-1.elb.amazonaws.com:3000
-- **Grafana**:  http://a473d6a5a9b464db18e2bf29ad6bd1c6-96360773.ap-south-1.elb.amazonaws.com:3000
+- **Backend**:  http://a5d9bb8061ca5466f84c88762cb102b7-1315807621.ap-south-1.elb.amazonaws.com:3000
+- **Grafana**:  http://a64155cb8f1b049bfb6ba6d8cdb36dd1-145619279.ap-south-1.elb.amazonaws.com:3000
 ## Project Structure
 
 ```
