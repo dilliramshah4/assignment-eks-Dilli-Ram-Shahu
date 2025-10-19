@@ -24,7 +24,7 @@ kubectl get svc -n devops
 ## 📊 **Access URLs**
 
 ### **Grafana Dashboard:**
-- **URL**: http://a473d6a5a9b464db18e2bf29ad6bd1c6-96360773.ap-south-1.elb.amazonaws.com:3000
+- **URL**: http://a64155cb8f1b049bfb6ba6d8cdb36dd1-145619279.ap-south-1.elb.amazonaws.com:3000
 - **Credentials**: Default Grafana setup (change in production)
 
 ### **Prometheus Metrics:**
